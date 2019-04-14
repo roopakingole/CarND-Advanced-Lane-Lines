@@ -152,6 +152,5 @@ Here's a [link to my video result](./project_video_sol.mp4)
 
 ### Discussion
 
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
-
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+In my lane finding, I am facing the issue of in threshold where in extreme lighting conditions where fixed threshold doesn't work all the time. Also, my finding line in the image doesn't work robustly when there is no line marks at the bottom of the frame image.
+If I were to pursue this project further, I would definitely improve the color threshold.
