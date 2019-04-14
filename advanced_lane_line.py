@@ -83,7 +83,7 @@ def calibrate_camera(path, test_img_path):
     dist_pickle["mtx"] = mtx
     dist_pickle["dist"] = dist
     pickle.dump( dist_pickle, open( "cam_calibration.p", "wb" ) )
-
+    
 def getCamCal():    
     dist_pickle = pickle.load( open( "cam_calibration.p", "rb" ) )
     mtx = dist_pickle["mtx"]
@@ -796,13 +796,13 @@ def processVideo(video_path):
     processed_clip.write_videofile(output_video, audio=False)    
     
 
-#calibrate_camera('./camera_cal/calibration*.jpg', './test_images/test1.jpg')
+#calibrate_camera('./camera_cal/calibration*.jpg', './camera_cal/calibration1.jpg')
 
 mtx, dist = getCamCal()
 
 processTestImage('./test_images/test1.jpg', mtx,dist)
 #processAll(mtx,dist)
 
-#processVideo('project_video.mp4')
+processVideo('project_video.mp4')
 #processVideo('challenge_video.mp4')
 #processVideo('harder_challenge_video.mp4')

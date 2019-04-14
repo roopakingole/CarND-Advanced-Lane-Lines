@@ -15,7 +15,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 [image_ori]: ./test_images/test1.jpg "Original"
-[image_camcal]: ./output_images/undistort_output.png "Undistorted"
+[image_camcal]: ./output_images/cam_cal.jpg "Camera Calibration Undistorted"
 [image_undistor]: ./output_images/undist.jpg "Undistorted"
 [image_binaryThd]: ./output_images/thresholded.png "Binary Thresholded"
 [image_warped]: ./output_images/warped.jpg "Warped"
@@ -146,7 +146,7 @@ Lastly, overlay the new unwarped image to original image and write the radius of
 ### Pipeline (video)
 
 
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./project_video_sol.mp4)
 
 ---
 
