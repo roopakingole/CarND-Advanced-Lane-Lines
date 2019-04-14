@@ -17,7 +17,7 @@ The goals / steps of this project are the following:
 [image_ori]: ./test_images/test1.jpg "Original"
 [image_camcal]: ./output_images/undistort_output.png "Undistorted"
 [image_undistor]: ./output_images/undist.jpg "Undistorted"
-[image_binaryThd]: ./output_images/thresholded.jpg "Binary Thresholded"
+[image_binaryThd]: ./output_images/thresholded.png "Binary Thresholded"
 [image_warped]: ./output_images/warped.jpg "Warped"
 [image_lane]: ./output_images/lane.jpg "Fit Visual"
 [image_final]: ./output_images/test1.jpg "Output"
