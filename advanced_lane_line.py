@@ -709,18 +709,22 @@ def pipeline(img,mtx,dist):
     #Distortation Correction
     #undist = cv2.undistort(img, mtx, dist, None, mtx)
     undist = undistort(img, mtx, dist)
+#    cv2.imwrite('./output_images/undist.jpg', undist)
     
     #Apply threshold
     thd = combined_thd(undist)
+#    cv2.imwrite('./output_images/thresholded.jpg', thd)
     
     #Prespective Transform
     src = np.float32([[595,451], [680,451], [233,720],[1067,720]])
     dst = np.float32([[350,0],   [930,0],  [350,720],[930,720]])
     warped = prespectiveTransform(thd, src, dst)
+#    cv2.imwrite('./output_images/warped.jpg', warped)
     #result = corners_unwarp(thd, nx, ny, mtx, dist)
     
     #Find Lane
     lane, left_r, right_r, dist_from_center = find_lane(warped)
+#    cv2.imwrite('./output_images/lane.jpg', lane)
     
     #Calculate curvature
     radius = ((left_r+right_r)/2)
@@ -793,9 +797,9 @@ def processVideo(video_path):
 
 mtx, dist = getCamCal()
 
-#processTestImage('./test_images/test6.jpg', mtx,dist)
+#processTestImage('./test_images/test1.jpg', mtx,dist)
 #processAll(mtx,dist)
 
 processVideo('project_video.mp4')
-processVideo('challenge_video.mp4')
-processVideo('harder_challenge_video.mp4')
+#processVideo('challenge_video.mp4')
+#processVideo('harder_challenge_video.mp4')
