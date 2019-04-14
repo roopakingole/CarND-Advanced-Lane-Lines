@@ -713,17 +713,20 @@ def pipeline(img,mtx,dist):
     
     #Apply threshold
     thd = combined_thd(undist)
-#    cv2.imwrite('./output_images/thresholded.jpg', thd)
+#    plt.imshow(thd)
+#    cv2.imwrite('./output_images/thresholded.png', thd)
     
     #Prespective Transform
     src = np.float32([[595,451], [680,451], [233,720],[1067,720]])
     dst = np.float32([[350,0],   [930,0],  [350,720],[930,720]])
     warped = prespectiveTransform(thd, src, dst)
+#    plt.imshow(warped)
 #    cv2.imwrite('./output_images/warped.jpg', warped)
     #result = corners_unwarp(thd, nx, ny, mtx, dist)
     
     #Find Lane
     lane, left_r, right_r, dist_from_center = find_lane(warped)
+#    plt.imshow(lane)
 #    cv2.imwrite('./output_images/lane.jpg', lane)
     
     #Calculate curvature
@@ -797,9 +800,9 @@ def processVideo(video_path):
 
 mtx, dist = getCamCal()
 
-#processTestImage('./test_images/test1.jpg', mtx,dist)
+processTestImage('./test_images/test1.jpg', mtx,dist)
 #processAll(mtx,dist)
 
-processVideo('project_video.mp4')
+#processVideo('project_video.mp4')
 #processVideo('challenge_video.mp4')
 #processVideo('harder_challenge_video.mp4')
