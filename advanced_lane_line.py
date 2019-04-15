@@ -18,6 +18,8 @@ import os
 import collections
 import math
 
+debug = 0
+
 # HYPERPARAMETERS
 imgH = 720
 imgW = 1280
@@ -30,9 +32,9 @@ nwindows = np.int(imgH/winH)
 margin = 100
 ym_per_pix = 30/720 # meters per pixel in y dimension
 xm_per_pix = 3.7/700 # meters per pixel in x dimension
-l_lines_collection = collections.deque([], 5)
-r_lines_collection = collections.deque([], 5)
-radius_col = collections.deque([],5)
+l_lines_collection = collections.deque([], 10)
+r_lines_collection = collections.deque([], 10)
+radius_col = collections.deque([],10)
 
 def gen_objpoints(path,nx=9,ny=6):
     images = glob.glob(path)
@@ -499,6 +501,7 @@ def search_around_poly(binary_warped,left_fit,right_fit):
     # HYPERPARAMETER
     # Choose the width of the margin around the previous polynomial to search
     # The quiz grader expects 100 here, but feel free to tune on your own!
+    out_img = np.dstack((binary_warped, binary_warped, binary_warped))
     margin = 100
 
     # Grab activated pixels
@@ -528,13 +531,13 @@ def search_around_poly(binary_warped,left_fit,right_fit):
     # Fit new polynomials
 #    left_fitx, right_fitx, ploty = fit_poly(binary_warped.shape, leftx, lefty, rightx, righty)
     
-    return leftx, lefty, rightx, righty
+    return leftx, lefty, rightx, righty, out_img
 
 def find_lane_pixels(binary_warped):
     # Take a histogram of the bottom half of the image
     histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
     # Create an output image to draw on and visualize the result
-#    out_img = np.dstack((binary_warped, binary_warped, binary_warped))
+    out_img = np.dstack((binary_warped, binary_warped, binary_warped))
     # Find the peak of the left and right halves of the histogram
     # These will be the starting point for the left and right lines
     midpoint = np.int(histogram.shape[0]//2)
@@ -567,8 +570,9 @@ def find_lane_pixels(binary_warped):
         win_xright_high = rightx_current+margin  # Update this
         
         # Draw the windows on the visualization image
-#        cv2.rectangle(out_img,(win_xleft_low,win_y_low),(win_xleft_high,win_y_high),(0,255,0), 2) 
-#        cv2.rectangle(out_img,(win_xright_low,win_y_low),(win_xright_high,win_y_high),(0,255,0), 2) 
+        if debug:
+            cv2.rectangle(out_img,(win_xleft_low,win_y_low),(win_xleft_high,win_y_high),(0,255,0), 2) 
+            cv2.rectangle(out_img,(win_xright_low,win_y_low),(win_xright_high,win_y_high),(0,255,0), 2) 
         
         ### TO-DO: Identify the nonzero pixels in x and y within the window ###
         good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy <= win_y_high) & (nonzerox >= win_xleft_low) & (nonzerox <= win_xleft_high)).nonzero()[0]
@@ -601,7 +605,7 @@ def find_lane_pixels(binary_warped):
     rightx = nonzerox[right_lane_inds]
     righty = nonzeroy[right_lane_inds]
 
-    return leftx, lefty, rightx, righty
+    return leftx, lefty, rightx, righty, out_img
 
 def get_lane_coeifficient(leftx,lefty,rightx,righty):
     left_fit = np.polyfit(lefty,leftx,2)
@@ -613,9 +617,9 @@ def fit_lane_polynomial(binary_warped, left_fit=None, right_fit=None):
 
     
     if left_fit is None and right_fit is None:
-        leftx, lefty, rightx, righty = find_lane_pixels(binary_warped)
+        leftx, lefty, rightx, righty, out_img = find_lane_pixels(binary_warped)
     else:
-        leftx, lefty, rightx, righty = search_around_poly(binary_warped,left_fit,right_fit)
+        leftx, lefty, rightx, righty, out_img = search_around_poly(binary_warped,left_fit,right_fit)
         
 
     
@@ -638,14 +642,15 @@ def fit_lane_polynomial(binary_warped, left_fit=None, right_fit=None):
     
     ## Visualization ##
     # Colors in the left and right lane regions
-#    out_img[lefty, leftx] = [255, 0, 0]
-#    out_img[righty, rightx] = [0, 0, 255]
+    if debug:
+        out_img[lefty, leftx] = [255, 0, 0]
+        out_img[righty, rightx] = [0, 0, 255]
 
     # Plots the left and right polynomials on the lane lines
     #plt.plot(left_fitx, ploty, color='yellow')
     #plt.plot(right_fitx, ploty, color='yellow')
 
-    return leftx, lefty, rightx, righty
+    return leftx, lefty, rightx, righty, out_img
 
 def find_lane(img):
     out_img = np.dstack((img, img, img))
@@ -657,7 +662,7 @@ def find_lane(img):
     if len(r_lines_collection) > 1:
         right_fit = np.array(np.sum(r_lines_collection, 0)/len(r_lines_collection))
     
-    leftx, lefty, rightx, righty = fit_lane_polynomial(img,left_fit, right_fit)
+    leftx, lefty, rightx, righty, debug_img = fit_lane_polynomial(img,left_fit, right_fit)
 
     left_fit,right_fit = get_lane_coeifficient(leftx,lefty,rightx,righty)
 
@@ -684,12 +689,16 @@ def find_lane(img):
     cv2.fillPoly(out_img, [points_rect], (0, 255, 0))
     cv2.polylines(out_img, [l_points], False, (255, 0, 0), 15)
     cv2.polylines(out_img, [r_points], False, (0, 0, 255), 15)
+
+    if debug:
+        cv2.polylines(debug_img, [l_points], False, (255, 0, 0), 15)
+        cv2.polylines(debug_img, [r_points], False, (0, 0, 255), 15)
     
     left_r, right_r = measure_curvature_pixels(ploty, left_fit, right_fit)
     left_rad, right_rad = measure_curvature_real(ploty*ym_per_pix, left_fit_rad, right_fit_rad)
     dist_from_center = left_fitx[-1] + ((right_fitx[-1] - left_fitx[-1])/2)
     dist_from_center = (imgW/2 - dist_from_center)*xm_per_pix
-    return out_img, left_rad, right_rad, dist_from_center
+    return out_img, left_rad, right_rad, dist_from_center, debug_img
 
 def pipeline(img,mtx,dist):
     #Pipeline
@@ -725,8 +734,8 @@ def pipeline(img,mtx,dist):
     #result = corners_unwarp(thd, nx, ny, mtx, dist)
     
     #Find Lane
-    lane, left_r, right_r, dist_from_center = find_lane(warped)
-#    plt.imshow(lane)
+    lane, left_r, right_r, dist_from_center, debug_img = find_lane(warped)
+#    plt.imshow(debug_img)
 #    cv2.imwrite('./output_images/lane.jpg', lane)
     
     #Calculate curvature
@@ -736,13 +745,20 @@ def pipeline(img,mtx,dist):
     
     #draw on original image
     unwraped = prespectiveTransform(lane, dst, src)
-    result = cv2.addWeighted(img, 1, unwraped, .3, 0.0, dtype=0)
+    result = cv2.addWeighted(undist, 1, unwraped, .3, 0.0, dtype=0)
     dist_str = 'right'
     if dist_from_center >= 0:
         dist_str = 'left'
         
-    cv2.putText(result, "Radius of Curvature = %.2f (m)" % avg_radius, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
-    cv2.putText(result, "Vehicle is %.2fm %s of center" % (np.abs(dist_from_center),dist_str), (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
+    cv2.putText(result, "Radius of Curvature = %.2f (m)" % (avg_radius), (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
+    cv2.putText(result, "Distance from center = %.2fm" % (dist_from_center), (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
+
+    if debug:
+        cv2.putText(result, "l:%.2f r:%.2f" % (left_r, right_r), (20, 130), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255))
+        s_img = cv2.resize(debug_img, (0,0), fx=0.33, fy=0.33)
+        x_offset= 1200 - s_img.shape[1]
+        y_offset=50
+        result[y_offset:y_offset+s_img.shape[0], x_offset:x_offset+s_img.shape[1]] = s_img
 
     return result
 
@@ -800,9 +816,9 @@ def processVideo(video_path):
 
 mtx, dist = getCamCal()
 
-processTestImage('./test_images/test1.jpg', mtx,dist)
+#processTestImage('./test_images/test1.jpg', mtx,dist)
 #processAll(mtx,dist)
 
-processVideo('project_video.mp4')
-#processVideo('challenge_video.mp4')
+#processVideo('project_video.mp4')
+processVideo('challenge_video.mp4')
 #processVideo('harder_challenge_video.mp4')
